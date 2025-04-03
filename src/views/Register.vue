@@ -5,7 +5,7 @@
         <v-card>
           <v-card-title class="headline">Реєстрація</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="register">
+            <v-form @submit.prevent="handleRegister">
               <v-text-field
                 v-model="email"
                 label="Email"
@@ -33,7 +33,7 @@
                 :rules="[rules.required, rules.matchPassword]"
                 required
               ></v-text-field>
-              <v-btn type="submit" color="primary" block>Зареєструватися</v-btn>
+              <v-btn type="submit" color="primary" block :loading="loading">Зареєструватися</v-btn>
             </v-form>
             <p class="mt-2">
               Вже маєте акаунт? <router-link to="/">Увійдіть</router-link>
@@ -48,13 +48,16 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const email = ref('');
 const username = ref('');
 const password = ref('');
 const confirmPassword = ref('');
+const loading = ref(false);
 
 const rules = {
   required: (value: string) => !!value || "Поле обов'язкове",
@@ -63,15 +66,15 @@ const rules = {
   matchPassword: (value: string) => value === password.value || 'Паролі не збігаються',
 };
 
-const register = () => {
-  console.log('Register attempt:', {
-    email: email.value,
-    username: username.value,
-    password: password.value,
-    confirmPassword: confirmPassword.value,
-  });
-  // Тут буде інтеграція з API пізніше
-  router.push('/');
+const handleRegister = async () => {
+  loading.value = true;
+  const success = await authStore.register(email.value, username.value, password.value);
+  loading.value = false;
+  if (success) {
+    router.push('/');
+  } else {
+    alert('Реєстрація не вдалася. Перевірте дані.');
+  }
 };
 </script>
 

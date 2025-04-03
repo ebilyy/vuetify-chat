@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-app-bar :elevation="2">
+      <v-app-bar :elevation="2" v-if="authStore.token">
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         </template>
@@ -19,6 +19,8 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import SidebarMenu from '@/components/SideBarMenuItems.vue';
+  import { useAuthStore } from '@/stores/auth'
 
+  const authStore = useAuthStore();
   const drawer = ref(false)
 </script>

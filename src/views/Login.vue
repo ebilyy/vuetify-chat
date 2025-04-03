@@ -5,7 +5,7 @@
         <v-card>
           <v-card-title class="headline">Вхід</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="login">
+            <v-form @submit.prevent="handleLogin">
               <v-text-field
                 v-model="email"
                 label="Email"
@@ -20,7 +20,7 @@
                 :rules="[rules.required, rules.minLength]"
                 required
               ></v-text-field>
-              <v-btn type="submit" color="primary" block>Увійти</v-btn>
+              <v-btn type="submit" color="primary" block :loading="loading">Увійти</v-btn>
             </v-form>
             <p class="mt-2">
               Немає акаунта? <router-link to="/register">Зареєструйтесь</router-link>
@@ -34,9 +34,15 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
+const loading = ref(false);
 
 const rules = {
   required: (value: string) => !!value || "Поле обов'язкове",
@@ -44,12 +50,15 @@ const rules = {
   minLength: (value: string) => value.length >= 6 || 'Мінімум 6 символів',
 };
 
-const login = () => {
-  console.log('Login attempt:', {
-    email: email.value,
-    password: password.value,
-  });
-  // Тут буде інтеграція з API пізніше
+const handleLogin = async () => {
+  loading.value = true;
+  const success = await authStore.login(email.value, password.value);
+  loading.value = false;
+  if (success) {
+    router.push('/contacts'); // redirect to contacts page
+  } else {
+    alert('Вхід не вдався. Перевірте дані.');
+  }
 };
 </script>
 

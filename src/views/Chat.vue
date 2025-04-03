@@ -1,0 +1,3 @@
+<template>
+  Chat vue
+</template>
