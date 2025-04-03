@@ -16,7 +16,7 @@
               <v-text-field
                 v-model="username"
                 label="Ім'я користувача"
-                :rules="[rules.required, rules.minLength]"
+                :rules="[rules.required]"
                 required
               ></v-text-field>
               <v-text-field
@@ -71,7 +71,7 @@ const handleRegister = async () => {
   const success = await authStore.register(email.value, username.value, password.value);
   loading.value = false;
   if (success) {
-    router.push('/');
+    router.push('/contacts');
   } else {
     alert('Реєстрація не вдалася. Перевірте дані.');
   }

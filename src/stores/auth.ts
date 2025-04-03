@@ -22,9 +22,8 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (email: string, username: string, password: string) => {
     try {
       const response = await api.post('/auth/register', { email, username, password });
-      const { userId, username: registeredUsername } = response.data;
-      // Токен поки не повертається з /register за ТЗ, але ми можемо додати його в майбутньому
-      setUser({ userId, username: registeredUsername, token: '' });
+      const { userId, username: registeredUsername, token } = response.data;
+      setUser({ userId, username: registeredUsername, token });
       return true;
     } catch (error) {
       console.error('Registration failed:', error);
@@ -35,8 +34,8 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { userId, token } = response.data;
-      setUser({ userId, username: email.split('@')[0], token });
+      const { userId, token, username } = response.data;
+      setUser({ userId, username, token });
       return true;
     } catch (error) {
       console.error('Login failed:', error);
@@ -45,4 +44,9 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   return { userId, username, token, setUser, clearUser, register, login };
+}, {
+  persist: {
+    storage: sessionStorage,
+    pick: ['userId', 'username', 'token'],
+  },
 });
