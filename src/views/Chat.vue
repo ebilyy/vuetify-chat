@@ -1,32 +1,48 @@
 <template>
-  <v-container>
-    <v-row>
+  <v-container fluid class="fill-height pa-0">
+    <v-row no-gutters class="fill-height">
       <v-col>
-        <v-card>
-          <v-card-title>Чат з {{ contactUsername }}</v-card-title>
-          <v-card-text>
-            <v-list class="message-list" style="max-height: 400px; overflow-y: auto;">
-              <v-list-item v-for="message in messages" :key="message.id">
-                <v-list-item-content>
-                  <v-list-item-title>
-                    {{ message.senderId === authStore.userId ? 'Ви' : contactUsername }}:
-                    {{ message.content }}
-                  </v-list-item-title>
-                  <v-list-item-subtitle>
-                    {{ new Date(message.sent_at).toLocaleTimeString() }}
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
+        <v-card class="d-flex flex-column" height="100%">
+          <v-card-title class="primary white--text">
+            Чат з {{ contactUsername }}
+          </v-card-title>
+          <v-card-text class="flex-grow-1 overflow-y-auto message-container pa-4">
+            <div v-for="message in messages" :key="message.id" class="message-item mb-2">
+              <v-chip
+                :color="message.senderId === authStore.userId ? 'blue lighten-4' : 'grey lighten-3'"
+                class="pa-3"
+                :class="{ 'ml-auto': message.senderId === authStore.userId }"
+                style="max-width: 70%; word-break: break-word;"
+              >
+                <span class="message-content">
+                  {{ message.content }}
+                </span>
+              </v-chip>
+              <div
+                :class="{
+                  'text-right': message.senderId === authStore.userId,
+                  'text-left': message.senderId !== authStore.userId,
+                }"
+                class="caption grey--text"
+              >
+                {{ new Date(message.sent_at).toLocaleTimeString() }}
+              </div>
+            </div>
+          </v-card-text>
+          <v-card-actions class="pa-4">
             <v-textarea
               v-model="newMessage"
               label="Напишіть повідомлення"
-              rows="2"
+              rows="1"
+              auto-grow
               append-icon="mdi-send"
               @click:append="sendMessage"
               @keyup.enter="sendMessage"
+              class="flex-grow-1"
+              outlined
+              dense
             ></v-textarea>
-          </v-card-text>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -34,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import api from '../api';
@@ -53,6 +69,7 @@ const fetchMessages = async () => {
   try {
     const response = await api.get(`/messages/${contactId.value}`);
     messages.value = response.data.messages;
+    scrollToBottom();
   } catch (error) {
     console.error('Failed to fetch messages:', error);
   }
@@ -78,12 +95,13 @@ const sendMessage = () => {
   };
   socket.emit('send_message', messageData);
   messages.value.push({
-    id: Date.now(), // Тимчасовий ID, реальний прийде з бекенду
+    id: Date.now(), // Тимчасовий ID
     senderId: authStore.userId!,
     content: newMessage.value,
     sent_at: new Date().toISOString(),
   });
   newMessage.value = '';
+  nextTick(() => scrollToBottom());
 };
 
 const setupSocket = () => {
@@ -103,12 +121,20 @@ const setupSocket = () => {
         content: message.content,
         sent_at: message.sent_at,
       });
+      nextTick(() => scrollToBottom());
     }
   });
 
   socket.on('disconnect', () => {
     console.log('Disconnected from WebSocket');
   });
+};
+
+const scrollToBottom = () => {
+  const container = document.querySelector('.message-container');
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
 };
 
 onMounted(() => {
@@ -125,8 +151,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.message-list {
-  background-color: #f5f5f5;
-  padding: 10px;
+.fill-height {
+  height: 100vh;
+}
+.message-container {
+  background-color: #fafafa;
+}
+.message-item {
+  display: flex;
+  flex-direction: column;
+}
+.message-content {
+  font-size: 1rem;
+  color: #333;
 }
 </style>

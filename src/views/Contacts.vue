@@ -6,7 +6,6 @@
           <v-card-title>
             Мої контакти
             <v-spacer></v-spacer>
-            <v-btn color="red" @click="logout">Вийти</v-btn>
           </v-card-title>
           <v-card-text>
             <v-list>
@@ -105,11 +104,6 @@ const addContact = async (username: string) => {
 
 const openChat = (contactId: number) => {
   router.push(`/chat/${contactId}`);
-};
-
-const logout = () => {
-  authStore.clearUser();
-  router.push('/');
 };
 
 const isContact = (userId: number) => {
