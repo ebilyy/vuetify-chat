@@ -4,26 +4,32 @@
       <v-col cols="12" md="6">
         <v-card>
           <v-card-title>
-            Мої контакти
+            Rooms managment
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-text>
             <v-list>
-              <v-list-item v-for="contact in contacts" :key="contact.id">
+              <v-list-item v-for="room in rooms" :key="room.id">
                 <v-list-item-content>
-                  <v-list-item-title>{{ contact.username }}</v-list-item-title>
+                  <v-list-item-title>{{ room.name }}</v-list-item-title>
                   <v-list-item-subtitle>
-                    {{ contact.online ? 'Онлайн' : 'Офлайн' }}
+                    {{ room.type }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action>
-                  <v-btn icon @click="openChat(contact.id)">
-                    <v-icon>mdi-message</v-icon>
+                  <v-btn icon @click="openChat(room.id)" size="small">
+                    <v-icon size="small">mdi-message-text</v-icon>
+                  </v-btn>
+                  <v-btn icon @click="deleteRoom(room.id)" size="small">
+                    <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </v-list-item-action>
               </v-list-item>
             </v-list>
           </v-card-text>
+          <v-card-actions>
+            <v-btn @click="createRoom()" color="primary">Створити кімнату</v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
       <v-col cols="12" md="6">
@@ -61,13 +67,13 @@ import api from '../api';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const contacts = ref<{ id: number; username: string; online: boolean }[]>([]);
+const rooms = ref<any[]>([]);
 const availableUsers = ref<{ id: number; username: string; online: boolean }[]>([]);
 
-const fetchContacts = async () => {
+const fetchRooms = async () => {
   try {
-    const response = await api.get('/contacts');
-    contacts.value = response.data.contacts;
+    const response = await api.get('/rooms');
+    rooms.value = response.data.rooms;
   } catch (error) {
     console.error('Failed to fetch contacts:', error);
   }
@@ -87,18 +93,12 @@ const fetchAvailableUsers = async () => {
   }
 };
 
-const addContact = async (username: string) => {
+const deleteRoom = async (roomId: number) => {
   try {
-    const response = await api.post('/contacts', { username });
-    const newContact = {
-      id: response.data.contactId,
-      username,
-      online: availableUsers.value.find((u) => u.username === username)?.online || false,
-    };
-    contacts.value.push(newContact);
-    availableUsers.value = availableUsers.value.filter((u) => u.username !== username);
+    await api.delete(`/rooms/${roomId}`);
+    rooms.value = rooms.value.filter((room) => room.id !== roomId);
   } catch (error) {
-    console.error('Failed to add contact:', error);
+    console.error('Failed to delete room:', error);
   }
 };
 
@@ -106,12 +106,17 @@ const openChat = (contactId: number) => {
   router.push(`/chat/${contactId}`);
 };
 
-const isContact = (userId: number) => {
-  return contacts.value.some((contact) => contact.id === userId);
+const createRoom = async () => {
+  try {
+    const response = await api.post('/rooms', { name: 'New Room', type: 'private' });
+    rooms.value.push(response.data.room);
+  } catch (error) {
+    console.error('Failed to create room:', error);
+  }
 };
 
 onMounted(() => {
-  fetchContacts();
+  fetchRooms();
   fetchAvailableUsers();
 });
 </script>

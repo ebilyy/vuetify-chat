@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/Login.vue';
 import RegisterView from '../views/Register.vue';
-import ContactsView from '../views/Contacts.vue';
+import RoomsView from '../views/Rooms.vue';
 import { useAuthStore } from '../stores/auth';
 
 const routes = [
@@ -16,9 +16,9 @@ const routes = [
     component: RegisterView,
   },
   {
-    path: '/contacts',
-    name: 'contacts',
-    component: ContactsView,
+    path: '/rooms',
+    name: 'rooms',
+    component: RoomsView,
     meta: { requiresAuth: true },
   },
   {
